@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.1//EN" "http://struts.apache.org/dtds/struts-2.1.dtd">
+
+<struts>
+	
+	<constant name="struts.convention.package.locators" value="action"></constant>
+	
+	<package name="mypackage" extends="struts-default">
+		
+		<action name="topicAction" class="org.forumSSH.action.TopicAction" method="addResponse">
+			
+			<interceptor-ref name="token"/>
+			
+			<interceptor-ref name="defaultStack"/>
+	
+			
+			<result name="invalid.token">/error.jsp</result>
+
+			<result name="responseList">/WEB-INF/content/topic-responseList.jsp</result>
+
+			<result name="responseForm">/WEB-INF/content/topic-responseForm.jsp</result>
+		
+		</action>
+		
+		
+		
+		<action name="topicAction2" class="org.forumSSH.action.TopicAction" method="addTopic">
+		
+			<interceptor-ref name="token"/>
+			
+			<interceptor-ref name="defaultStack"/>
+	
+			
+			<result name="invalid.token">/error.jsp</result>
+	
+			<result name="success">/WEB-INF/content/topic.jsp</result>
+	
+		</action>
+
+	</package>
+
+</struts>    
