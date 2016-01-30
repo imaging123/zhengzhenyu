@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="dns-1.2">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/src/lib/dns-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/lib/jndi-1.2.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/src/lib/providerutil.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
