@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>imaging</title>
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/js/jquery-2.0.0.min.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var id = 'news'
+            $("a").click(function () {
+                id = this.attributes[0].value
+                $("#btn").text(this.innerHTML)
+            })
+
+
+            function validate() {
+                var key = $("#queryStr").val()
+                if (key == "" || key == null) {
+
+                    $("#myModal").modal('show')
+//                    setTimeout($("#myModal").modal('hide'),3000)
+                    return false
+                }
+                else
+                    return true
+            }
+
+            $("#queryStr").keydown(function () {
+                if (event.keyCode == 13) {
+                    if (validate()) {
+                        $("#type").val(id)
+                        $("#myForm").submit()
+                    }
+
+                }
+            })
+
+            document.getElementById("submitBtn").onclick = function () {
+                if (validate()) {
+                    $("#type").val(id)
+                    $("#myForm").submit();
+
+                }
+            }
+        })
+
+    </script>
+
+
+</head>
+<body>
+<div style="padding: 100px 100px 100px 100px;">
+    <div class="row" style="margin-left: 240px;margin-top: 50px">
+        <div class="col-lg-10" style="text-align: center;padding-bottom: 20px">
+            <img src="/images/272.png" alt="logo" onclick='window.location.href="index.html"'/>
+        </div>
+        <div class="col-lg-10">
+            <form id="myForm" action="/searcher/all" class="bs-example bs-example-form" role="form">
+
+                <div class="input-group input-group-lg">
+                    <div class="input-group-btn">
+                        <button id="btn" type="button" class="btn btn-default
+                     dropdown-toggle" data-toggle="dropdown"  title="搜索主题">
+                            新闻
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a id="news">新闻</a></li>
+                            <li><a id="book">图书</a></li>
+                            <li><a id="blog">博客</a></li>
+                            <li><a id="film">电影</a></li>
+                        </ul>
+                    </div>
+                    <input id="type" type="hidden" name="type"/>
+                    <input style="display:none"/>
+                    <!-- /btn-group -->
+                    <input id="queryStr" autofocus="true" type="text" class="form-control" placeholder="keyword"
+                           name="queryStr"/>
+                     <span class="input-group-btn">
+                    <button id="submitBtn" class="btn btn-primary" type="button">Go!</button>
+                         <select class="form-control" name="topN" data-toggle="tooltip" title="搜索数量">
+                             <option>10</option>
+                             <option>20</option>
+                             <option>30</option>
+                             <option>40</option>
+                             <option>50</option>
+                             <option>60</option>
+                             <option>70</option>
+                             <option>80</option>
+                         </select>
+               </span>
+                </div>
+                <!-- /input-group -->
+            </form>
+
+        </div>
+        <!-- /.col-lg-6 --><br>
+    </div>
+</div>
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="alertdialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:14em;">
+        <div class="alert alert-warning" style="text-align: center">
+            请输入关键词
+        </div>
+    </div>
+    <!-- /.modal-content -->
+</div>
+
+
+</body>
+</html>

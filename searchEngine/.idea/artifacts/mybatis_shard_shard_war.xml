@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="mybatis-shard.shard:war">
+    <output-path>$PROJECT_DIR$/shard/target</output-path>
+    <root id="archive" name="ssm.war">
+      <element id="artifact" artifact-name="mybatis-shard.shard:war exploded" />
+    </root>
+  </artifact>
+</component>

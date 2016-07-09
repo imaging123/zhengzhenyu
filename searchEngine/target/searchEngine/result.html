@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>imaging</title>
+
+    <link href="/bootstrap/css/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/js/jquery-2.0.0.min.js"></script>
+    <script src="/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap-paginator.js"></script>
+    <style type="text/css">
+        a:visited {
+            color: #bb5acc
+        }
+
+
+    </style>
+    <script>
+        $(document).ready(function () {
+
+            var id = 'news'
+            var oldStr = $("#queryStr").val() ;
+
+            $("a").click(function () {
+                id = this.attributes[0].value
+                $("#type").val(id)
+                $("#btn").text(this.innerHTML)
+            })
+
+            function validate() {
+                var key = $("#queryStr").val()
+                if (key == "" || key == null) {
+                    $("#msg").html(' <div class="alert alert-warning" style="text-align: center"> 请输入关键词</div>')
+                    $("#myModal").modal('show')
+//                    setTimeout($("#myModal").modal('hide'),3000)
+                    return false
+                }
+                else
+                    return true
+            }
+
+
+            function search(url) {
+                console.log($("#type").val())
+                var fieldName = $('#fieldName input[name="options"]:checked').attr('id')
+                console.log('fieldName=' + fieldName)
+                var map = {
+                    "fieldName": fieldName,
+                    "type": $("#type").val(),
+                    "queryStr": $("#queryStr").val(),
+                    "topN": $("select").val()
+                }
+                console.log(JSON.stringify(map))
+                $.ajax({
+                    url: url,
+                    type: "post",
+                    dataType: 'json',
+                    contentType: "application/json",
+                    data: JSON.stringify(map),
+                    success: function (data) {
+                        if (data != null) {
+                            if (data.code == 1) {
+                                $("#msg").html(' <div  class="alert alert-danger" style="text-align: center">' + data.msg + '</div>')
+                                $("#myModal").modal('show')
+                                $("#list").children().remove();
+                                $("#example").children().remove();
+                            }
+                            else {
+                                $("#msg").html(' <div  class="alert alert-success" style="text-align: center">' + data.msg + '</div>')
+                                $("#myModal").modal('show')
+                                setTimeout($("#myModal").modal("hide"), 3000)
+                                $("#maxDocs").html(data.data.totalCount)
+                                $("#time").html(data.data.time)
+                                $("#list").children().remove();
+                                $.each(data.data.data, function (index, item) { //遍历返回的json
+                                    $("#list").append('<div class="col-md-8">');
+                                    $("#list").append('<div><h3 ><a target="_blank" href="' + item.url + '">' + item.title + '</a></h3></div>');
+                                    $("#list").append('<div><a target="_blank" href="' + item.url + '"><span style="color: darkseagreen"> ' + item.url + '</span></a></div>');
+                                    $("#list").append(' <div style="width: 60%;"><span>' + item.digest + '</span></div>');
+                                    $("#list").append('</div>')
+                                });
+                            }
+
+                            var pageCount = data.data.pageCount; //取到pageCount的值(把返回数据转成object类型)
+                            console.log('pageCount' + pageCount)
+                            var currentPage = data.data.currentNo; //得到urrentPage
+                            var options = {
+                                bootsrVtrapMajoersion: 3, //版本
+                                currentPage: currentPage, //当前页数
+                                totalPages: pageCount, //总页数
+                                itemTexts: function (type, page, current) {
+                                    switch (type) {
+                                        case "first":
+                                            return "首页";
+                                        case "prev":
+                                            return "上一页";
+                                        case "next":
+                                            return "下一页";
+                                        case "last":
+                                            return "末页";
+                                        case "page":
+                                            return page;
+                                    }
+                                },//点击事件，用于通过Ajax来刷新整个list列表
+                                onPageClicked: function (event, originalEvent, type, page) {
+                                    $("#list").children().remove();
+                                    var map = {"fieldName": fieldName, "page": page}
+                                    $.ajax({
+                                        url: "/searcher/page",
+                                        type: "post",
+                                        dataType: "json",
+                                        contentType: "application/json",
+                                        data: JSON.stringify(map),
+                                        success: function (data1) {
+                                            if (data1 != null) {
+                                                $("#list").children().remove();
+                                                $.each(data1.data.data, function (index, item) { //遍历返回的json
+                                                    $("#list").append('<div class="col-md-8">');
+                                                    $("#list").append('<div><h3 ><a target="_blank" href="' + item.url + '">' + item.title + '</a></h3></div>');
+                                                    $("#list").append('<div><a target="_blank" href="' + item.url + '"><span style="color: darkseagreen"> ' + item.url + '</span></a></div>');
+                                                    $("#list").append(' <div style="width: 60%;"><span>' + item.digest + '</span></div>');
+                                                    $("#list").append('</div>')
+                                                });
+                                            }
+                                        }
+                                    });
+                                }
+                            };
+                            $('#example').bootstrapPaginator(options);
+                        }
+                    }
+                });
+            }
+
+
+            $("#queryStr").keydown(function () {
+                if (event.keyCode == 13) {
+                    if (validate()) {
+                        oldStr = $("#queryStr").val() ;
+                        search("/searcher/allResult");
+                    }
+                }
+            })
+
+            document.getElementById("submitBtn").onclick = function () {
+                if (validate()) {
+                    oldStr = $("#queryStr").val() ;
+                    $("#type").val(id)
+                    search("/searcher/allResult");
+                }
+            }
+
+            $("#filterBtn").click(function () {
+                if (validate()) {
+                    $("#type").val(id)
+                    search("/searcher/part/"+oldStr);
+                }
+            })
+        })
+    </script>
+
+
+    <script>
+        $(document).ready(function () {
+
+                    var msg = $.parseJSON($("#result").val())
+                    var data = msg.data;
+                    console.log("msg>>>" + msg)
+                    if (msg == null || msg.code == 1) {
+                        $("#msg").html(' <div  class="alert alert-danger" style="text-align: center">' + data.msg + '</div>')
+                        $("#myModal").modal('show')
+                    }
+                    else {
+                        $("#msg").html(' <div  class="alert alert-success" style="text-align: center">' + data.msg + '</div>')
+                        $("#myModal").modal('show')
+                        setTimeout($("#myModal").modal("hide"), 3000)
+                    }
+                    console.log(typeof data)
+                    console.log(data)
+                    $.each(data.data, function (index, item) { //遍历返回的json
+                        $("#list").append('<div class="col-md-8">');
+                        $("#list").append('<div><h3 ><a target="_blank" href="' + item.url + '">' + item.title + '</a></h3></div>');
+                        $("#list").append('<div><a target="_blank" href="' + item.url + '"><span style="color: darkseagreen"> ' + item.url + '</span></a></div>');
+                        $("#list").append(' <div style="width: 60%;"><span>' + item.digest + '</span></div>');
+                        $("#list").append('</div>')
+                    });
+                    var currentPage = data.currentNo;
+                    var pageCount = data.pageCount
+                    var fieldName = $('#fieldName input[name="options"]:checked').attr('id');
+
+                    console.log(pageCount)
+                    var options = {
+                        bootsrVtrapMajoersion: 3, //版本
+                        currentPage: currentPage, //当前页数
+                        totalPages: pageCount, //总页数
+                        itemTexts: function (type, page, current) {
+                            switch (type) {
+                                case "first":
+                                    return "首页";
+                                case "prev":
+                                    return "上一页";
+                                case "next":
+                                    return "下一页";
+                                case "last":
+                                    return "末页";
+                                case "page":
+                                    return page;
+                            }
+                        },//点击事件，用于通过Ajax来刷新整个list列表
+                        onPageClicked: function (event, originalEvent, type, page) {
+                            $("#list").children().remove();
+                            var map = {"fieldName": fieldName, "page": page}
+                            $.ajax({
+                                url: "/searcher/page",
+                                type: "post",
+                                dataType: "json",
+                                contentType: "application/json",
+                                data: JSON.stringify(map),
+                                success: function (data1) {
+                                    if (data1 != null) {
+                                        $.each(data1.data.data, function (index, item) { //遍历返回的json
+                                            $("#list").append('<div class="col-md-8" style="margin-bottom: 18px"> ');
+                                            $("#list").append('<div><h3 ><a href="' + item.url + '">' + item.title + '</a></h3></div>');
+                                            $("#list").append('<div><a target="_blank"  href="' + item.url + '"><span style="color: darkseagreen"> ' + item.url + '</span></a></div>');
+                                            $("#list").append(' <div style="width: 60%"><span>' + item.digest + '</span></div>');
+                                            $("#list").append('</div>')
+                                        });
+                                    }
+                                }
+                            });
+
+                        }
+                    };
+                    $('#example').bootstrapPaginator(options);
+                }
+        )
+
+    </script>
+</head>
+<body>
+<input type="hidden" id="result" th:value="${message}" runat="server"/>
+
+<div style="padding:25px 10px 10px 30px;background-color: rgba(166, 150, 187, 0.24)">
+    <div class="row">
+        <div class="col-md-1" style="margin-right: 10px">
+            <a href="/index.html">
+            <img class="media-object" src="/images/240.png" alt="logo"  />
+            </a>
+        </div>
+        <div class="col-md-6">
+            <!--<img src="/images/240.png" alt="logo"/>-->
+            <div class="input-group input-group-md">
+                <div class="input-group-btn">
+                    <button id="btn" type="button" class="btn btn-default
+                     dropdown-toggle" data-toggle="dropdown" title="搜索主题" th:text="${typeName}">
+                        新闻
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a id="news">新闻</a></li>
+                        <li><a id="book">图书</a></li>
+                        <li><a id="blog">博客</a></li>
+                        <li><a id="film">电影</a></li>
+                    </ul>
+                </div>
+                <input id="type" type="hidden" th:value="${type}"/>
+                <input style="display:none"/>
+                <!-- /btn-group -->
+                <input id="queryStr" autofocus="true" type="text" class="form-control" placeholder="keyword"
+                       name="queryStr" th:value="${queryStr}"/>
+                     <span class="input-group-btn">
+                    <button id="submitBtn" class="btn btn-primary">Go!</button>
+                         <button id="filterBtn" class="btn btn-default">结果中查</button>
+                         <select class="form-control" name="topN" data-toggle="tooltip" title="搜索数量" th:value="${topN}">
+                             <option>10</option>
+                             <option>20</option>
+                             <option>30</option>
+                             <option>40</option>
+                             <option>50</option>
+                             <option>60</option>
+                             <option>70</option>
+                             <option>80</option>
+                             <option>all</option>
+                         </select>
+               </span>
+            </div>
+            <!-- /input-group -->
+        </div>
+        <!-- /.col-lg-6 --><br/>
+    </div>
+
+    <!-- fieldName-->
+    <div id="fieldName" class="btn-group" data-toggle="buttons" style="margin-left: 118px">
+        <label class="btn btn-default active">
+            <input type="radio" name="options" id="content" checked="checked"/> 内容
+        </label>
+        <label class="btn btn-default">
+            <input type="radio" name="options" id="title"/> 标题
+        </label>
+        <label class="btn btn-default">
+            <input type="radio" name="options" id="url"/> 链接
+        </label>
+    </div>
+
+</div>
+<div style="background-color: #e7e7e7"><span style="color: rgba(120, 103, 109, 0.71)">查询结果总数：<em id="maxDocs" style="color: #67b168"
+                                                                                        th:text="${maxDocs}"></em></span>
+    <span style="color: rgba(120, 103, 109, 0.71)">用时：<em id="time" style="color: #67b168" th:text="${time}"></em>ms</span>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="alertdialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div id="msg" class="modal-dialog" style="width:14em;">
+
+    </div>
+    <!-- /.modal-content -->
+</div>
+
+<!--查询结果-->
+<div style="margin: 10px 10px 30px 10px;background-color: rgba(148, 137, 207, 0.11)">
+    <div id="list" class="row" style="margin:15px 10px 10px 20px">
+        <!--<div class="col-md-8">-->
+        <!--<div><h3 ><a th:href="${result.url}" th:text="${result.title}"></a></h3></div>-->
+        <!--<div><span th:text="${result.url}" style="color: darkseagreen"></span></div>-->
+        <!--<div><span th:text="${result.digest}"></span></div>-->
+        <!--</div>-->
+    </div>
+
+    <!-- 分页插件-->
+    <div id="example" style="padding-left:50px ">
+    </div>
+</div>
+
+</body>
+</html>
